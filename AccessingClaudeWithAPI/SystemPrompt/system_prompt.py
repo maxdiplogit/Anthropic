@@ -10,13 +10,14 @@ load_dotenv()
 client = Anthropic()  # Uses ANTHROPIC_API_KEY from environment
 messages = []
 
-system_prompt = """
-    You are a patient math tutor.
-    Do not directly answer a student's questions.
-    Guide them to a solution step by step.
-"""
+print("Chat with Claude (type 'quit' to exit)\n")
 
-print("Chat with Claude Math Tutor (type 'quit' to exit)\n")
+user_system_prompt = input("System prompt: ").strip()
+if user_system_prompt.lower() in {"quit", "exit"}:
+    sys.exit()
+if not user_system_prompt:
+    user_system_prompt = None
+
 
 while True:
     user_input = input("You: ").strip()
@@ -27,14 +28,18 @@ while True:
 
     messages.append({"role": "user", "content": user_input})
 
-    response = client.messages.create(
-        model="claude-opus-4-7",
-        max_tokens=1024,
-        messages=messages,
-        system=system_prompt,
-    )
+    payload = {
+        "model": "claude-opus-4-7",
+        "max_tokens": 1024,
+        "messages": messages,
+    }
+
+    if user_system_prompt:
+        payload["system"] = user_system_prompt
+
+    response = client.messages.create(**payload)
 
     assistant_reply = response.content[0].text
     messages.append({"role": "assistant", "content": assistant_reply})
 
-    print(f"\nClaude Math Tutor: {assistant_reply}\n")
+    print(f"\nClaude: {assistant_reply}\n")
